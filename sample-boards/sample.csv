@@ -1,0 +1,11 @@
+category,value,clue,answer,dailyDouble
+MUSIC,200,This artist's albums include Thriller and Bad.,Who is Michael Jackson?,false
+MUSIC,400,This instrument has 88 keys.,What is a piano?,false
+MUSIC,600,This British band released Abbey Road in 1969.,Who are The Beatles?,true
+MUSIC,800,This Austrian composer wrote The Magic Flute.,Who is Mozart?,false
+MUSIC,1000,This annual awards show is nicknamed "Music's Biggest Night".,What are the Grammys?,false
+SPORTS,200,This sport is played at Wimbledon.,What is tennis?,false
+SPORTS,400,This is the only sport where players can score a "hat trick".,What is hockey (or soccer)?,false
+SPORTS,600,This country has won the most FIFA World Cups.,What is Brazil?,false
+SPORTS,800,This NBA player is nicknamed "King James".,Who is LeBron James?,false
+SPORTS,1000,This marathon distance in miles is approximately this number.,What is 26.2?,false

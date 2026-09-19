@@ -1,0 +1,115 @@
+{
+  "title": "Sample Game Night",
+  "categories": [
+    {
+      "name": "SCIENCE",
+      "clues": [
+        {
+          "value": 200,
+          "clue": "This force pulls objects toward the center of the Earth.",
+          "answer": "What is gravity?",
+          "dailyDouble": false
+        },
+        {
+          "value": 400,
+          "clue": "The chemical symbol Au represents this element.",
+          "answer": "What is gold?",
+          "dailyDouble": false
+        },
+        {
+          "value": 600,
+          "clue": "This is the powerhouse of the cell.",
+          "answer": "What is the mitochondria?",
+          "dailyDouble": true
+        },
+        {
+          "value": 800,
+          "clue": "This planet is known as the Red Planet.",
+          "answer": "What is Mars?",
+          "dailyDouble": false
+        },
+        {
+          "value": 1000,
+          "clue": "This scientist developed the theory of general relativity.",
+          "answer": "Who is Albert Einstein?",
+          "dailyDouble": false
+        }
+      ]
+    },
+    {
+      "name": "MOVIES",
+      "clues": [
+        {
+          "value": 200,
+          "clue": "This 1997 film features a ship called the Titanic.",
+          "answer": "What is Titanic?",
+          "dailyDouble": false
+        },
+        {
+          "value": 400,
+          "clue": "This wizard attends Hogwarts School of Witchcraft and Wizardry.",
+          "answer": "Who is Harry Potter?",
+          "dailyDouble": false
+        },
+        {
+          "value": 600,
+          "clue": "This trilogy follows a hobbit named Frodo.",
+          "answer": "What is The Lord of the Rings?",
+          "dailyDouble": false
+        },
+        {
+          "value": 800,
+          "clue": "This Pixar film is about toys that come to life.",
+          "answer": "What is Toy Story?",
+          "dailyDouble": false
+        },
+        {
+          "value": 1000,
+          "clue": "This director made Jaws, E.T., and Jurassic Park.",
+          "answer": "Who is Steven Spielberg?",
+          "dailyDouble": false
+        }
+      ]
+    },
+    {
+      "name": "GEOGRAPHY",
+      "clues": [
+        {
+          "value": 200,
+          "clue": "This is the largest continent by area.",
+          "answer": "What is Asia?",
+          "dailyDouble": false
+        },
+        {
+          "value": 400,
+          "clue": "This river is the longest in the world.",
+          "answer": "What is the Nile?",
+          "dailyDouble": false
+        },
+        {
+          "value": 600,
+          "clue": "This country is shaped like a boot.",
+          "answer": "What is Italy?",
+          "dailyDouble": false
+        },
+        {
+          "value": 800,
+          "clue": "This is the smallest country in the world by area.",
+          "answer": "What is Vatican City?",
+          "dailyDouble": false
+        },
+        {
+          "value": 1000,
+          "clue": "This mountain range separates Europe and Asia.",
+          "answer": "What are the Urals?",
+          "dailyDouble": false
+        }
+      ]
+    }
+  ],
+  "finalJeopardy": {
+    "category": "WORLD CAPITALS",
+    "clue": "This city, on two continents, is the only capital city split between Europe and Asia... wait, this is actually not the capital of Turkey.",
+    "answer": "What is Istanbul? (Trick: Ankara is Turkey's actual capital)"
+  }
+}

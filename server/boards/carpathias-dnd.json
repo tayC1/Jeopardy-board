@@ -1,0 +1,51 @@
+{
+  "title": "Men's Group D&D Jeopardy",
+  "categories": [
+    {
+      "name": "NPC Names",
+      "clues": [
+        { "value": 200, "clue": "This NPC has duplicates that were put into a bag of holding", "answer": "Who is Mageforge?", "dailyDouble": false },
+        { "value": 400, "clue": "This NPC is the brother of one of our player characters.", "answer": "Who is Olinwine?", "dailyDouble": false },
+        { "value": 600, "clue": "This NPC said they'd go on a date with with Meldin.", "answer": "Who is Sadrine/Santin?", "dailyDouble": true },
+        { "value": 800, "clue": "This NPC is a known doublecrosser, they're now dead..", "answer": "Who is Nasim?", "dailyDouble": false },
+        { "value": 1000, "clue": "We discovered early in the campaign that this NPC was dead.", "answer": "Who is Susy?", "dailyDouble": false }
+      ]
+    },
+    {
+      "name": "Settings",
+      "clues": [
+        { "value": 200, "clue": "This city is the nameskae of our campaign", "answer": "where is Carpathia?", "dailyDouble": false },
+        { "value": 400, "clue": "This has been part of many adventures.", "answer": "Where is Tiberous's Tavern?", "dailyDouble": false },
+        { "value": 600, "clue": "This character's castle has an airship dock.", "answer": "who is Talonvier?", "dailyDouble": false },
+        { "value": 800, "clue": "This secret room houses lots of magic itmes.", "answer": "What is Mageforge's shop?", "dailyDouble": false },
+        { "value": 1000, "clue": "This kingdom sits north of Aruelon.", "answer": "where is Nadenfold?", "dailyDouble": false }
+      ]
+    },
+    {
+      "name": "Monsters",
+      "clues": [
+        { "value": 200, "clue": "The type of creature that Nasim/Meldin's Girlfriend are.", "answer": "What is an aaracockra?", "dailyDouble": false },
+        { "value": 400, "clue": "We fought this creature early in the campaign.", "answer": "What is an observer?", "dailyDouble": false },
+        { "value": 600, "clue": "There was a statute of this creature in one of the dungeons we've been through.", "answer": "What is an Beholder?", "dailyDouble": false },
+        { "value": 800, "clue": "This is the type of character Mageforge was conjering as a distraction early in the campaign.", "answer": "What are dogs?", "dailyDouble": false },
+        { "value": 1000, "clue": "tiberious claims to be this type of creature (not a human(.", "answer": "what is a celestial God?", "dailyDouble": false }
+      ]
+    },
+    {
+      "name": "Let's talk players and characters",
+      "clues":[
+        {"value": 200, "clue": "This character/player somehow has/had the ability to do horibly on critical dice roles", "answer":"Who is Caleb/Talonvier?", "dailyDouble": false},
+        {"value": 400, "clue": "This character/player has the ability to create and destroy water", "answer": "Who is Cole/Flumps?", "dailyDouble": false},
+        {"value": 400, "clue": "This character/player has the ability to beomce a giant", "answer":"Who is Jer-bear/meldin?", "dailyDouble": false},
+        {"value": 600, "clue": "This character/player has some accessories with some interesting contents.", "answer": "Who is Stephen/Max", "dailyDouble": false},
+        {"value": 800, "clue": "This character/player has a proclivity for drinking beer and offending bird girls", "answer": "Who is Deveon/Uurch"},
+        {"value": 1000, "clue": "This character/player has ties to the city government of Carpathia", "answer": "who is Lando/Edrin"}
+      ]
+    }
+  ],
+  "finalJeopardy": {
+    "category": "Dungeons and their creatures",
+    "clue": "We've gone through dungeons, each one has contained one of these creatures..",
+    "answer": "What is a mimic?"
+  }
+}

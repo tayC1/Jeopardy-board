@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lsof -nP -iTCP:4000 -sTCP:LISTEN)",
+      "Bash(lsof -nP -iTCP:5173 -sTCP:LISTEN)",
+      "Bash(curl -s http://localhost:4000/api/boards)",
+      "Bash(curl -s http://localhost:5173/api/boards)",
+      "Bash(node -e ' *)",
+      "Bash(cd *)",
+      "Bash(echo *)",
+      "Bash(node *)",
+      "Bash(curl -s -m 3 http://localhost:4000/api/boards)"
+    ]
+  }
+}
