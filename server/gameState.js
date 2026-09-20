@@ -31,8 +31,10 @@ export class Room {
     this.hostSocketId = null;
     this.testPlayerId = null;
     this.boardRevealed = false;
+    this.valuesRevealed = false;
     this.categoryIntroStep = null; // alternates logo(even)/category(odd): 0=logo, 1=cat0, 2=logo, 3=cat1, ...
     this.buzzTimeoutHandle = null;
+    this.lastCorrectPlayerId = null;
   }
 
   addTestPlayer() {
@@ -76,9 +78,17 @@ export class Room {
     return this.board.categories.every((cat) => cat.clues.every((c) => c.answered));
   }
 
+  revealValues() {
+    if (this.phase !== 'board') return { ok: false, error: 'Not on the board right now' };
+    if (this.valuesRevealed) return { ok: false, error: 'Values already revealed' };
+    this.valuesRevealed = true;
+    return { ok: true };
+  }
+
   startCategoryIntro() {
     if (this.phase !== 'board') return { ok: false, error: 'Not on the board right now' };
     if (this.boardRevealed) return { ok: false, error: 'Categories already revealed' };
+    if (!this.valuesRevealed) return { ok: false, error: 'Reveal the values first' };
     if (this.categoryIntroStep !== null) return { ok: false, error: 'Category intro already in progress' };
     this.categoryIntroStep = 0; // step 0 = logo, before category 0
     return { ok: true };
@@ -157,6 +167,7 @@ export class Room {
       const { playerId, wager } = this.dailyDouble;
       const player = this.players.get(playerId);
       if (player) player.score += correct ? wager : -wager;
+      if (correct) this.lastCorrectPlayerId = playerId;
       this._markCurrentClueAnswered();
       this.dailyDouble = null;
       this.currentClue = null;
@@ -172,6 +183,7 @@ export class Room {
       if (player) player.score += correct ? value : -value;
 
       if (correct) {
+        this.lastCorrectPlayerId = playerId;
         this._markCurrentClueAnswered();
         this.currentClue = null;
         this._clearBuzzTimer();
@@ -218,6 +230,7 @@ export class Room {
     if (this.phase !== 'lobby') return { ok: false, error: 'Game already started' };
     this.phase = 'board';
     this.boardRevealed = false;
+    this.valuesRevealed = false;
     this.categoryIntroStep = null;
     return { ok: true };
   }
@@ -230,6 +243,7 @@ export class Room {
     this.round = 2;
     this.board = buildRoundBoard(this.rawBoard, 2);
     this.boardRevealed = false;
+    this.valuesRevealed = false;
     this.categoryIntroStep = null;
     this.currentClue = null;
     this._clearBuzzTimer();
@@ -317,6 +331,7 @@ export class Room {
     const player = this.players.get(playerId);
     const wager = this.final.wagers[playerId] || 0;
     if (player) player.score += correct ? wager : -wager;
+    if (correct) this.lastCorrectPlayerId = playerId;
     this.final.results[playerId] = correct;
 
     if (this.final.revealIndex === this.final.order.length - 1) {
@@ -337,8 +352,10 @@ export class Room {
       buzz: this.buzz,
       dailyDouble: this.dailyDouble,
       final: this.final,
+      lastCorrectPlayerId: this.lastCorrectPlayerId,
       testPlayerId: this.testPlayerId,
       boardRevealed: this.boardRevealed,
+      valuesRevealed: this.valuesRevealed,
       categoryIntroStep: this.categoryIntroStep,
       round: this.round,
       hasRound2: this.hasRound2,
@@ -419,6 +436,7 @@ export class Room {
       buzz: this.buzz,
       final,
       boardRevealed: this.boardRevealed,
+      valuesRevealed: this.valuesRevealed,
       categoryIntroStep: this.categoryIntroStep,
       round: this.round,
     };

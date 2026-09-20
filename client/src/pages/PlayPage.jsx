@@ -149,7 +149,7 @@ export default function PlayPage() {
             key={state.round}
             board={state.board}
             boardRevealed={state.boardRevealed}
-            valuesRevealed={state.boardRevealed || state.categoryIntroStep !== null}
+            valuesRevealed={state.valuesRevealed}
           />
           <p className="subtitle" style={{ textAlign: 'center' }}>
             Watch the display — the host is picking the next clue.

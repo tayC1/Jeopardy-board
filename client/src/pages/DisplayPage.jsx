@@ -58,7 +58,7 @@ export default function DisplayPage() {
             key={state.round}
             board={state.board}
             boardRevealed={state.boardRevealed}
-            valuesRevealed={state.boardRevealed || state.categoryIntroStep !== null}
+            valuesRevealed={state.valuesRevealed}
           />
         </div>
       )}

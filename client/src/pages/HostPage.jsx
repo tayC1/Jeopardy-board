@@ -115,6 +115,7 @@ export default function HostPage() {
 
   const allAnswered = state.board.categories.every((cat) => cat.clues.every((c) => c.answered));
   const hasTestPlayer = !!state.testPlayerId;
+  const lastCorrectPlayer = state.players.find((p) => p.id === state.lastCorrectPlayerId);
 
   return (
     <div className="page">
@@ -139,6 +140,12 @@ export default function HostPage() {
 
       {error && <div className="error-banner">{error}</div>}
 
+      {lastCorrectPlayer && (
+        <div className="subtitle last-correct-indicator">
+          Last correct answer: <strong>{lastCorrectPlayer.name}</strong>
+        </div>
+      )}
+
       <Scoreboard players={state.players} buzz={state.buzz} />
 
       {state.phase === 'lobby' && (
@@ -157,13 +164,19 @@ export default function HostPage() {
             key={state.round}
             board={state.board}
             boardRevealed={state.boardRevealed}
-            valuesRevealed={state.boardRevealed || state.categoryIntroStep !== null}
+            valuesRevealed={state.valuesRevealed}
             onSelectClue={(catIndex, clueIndex) => act('host:selectClue', { catIndex, clueIndex })}
           />
           <div className="host-controls">
-            {!state.boardRevealed && (state.categoryIntroStep === null || state.categoryIntroStep === undefined) && (
-              <button onClick={() => act('host:startCategoryIntro')}>Reveal Categories</button>
+            {!state.boardRevealed && !state.valuesRevealed && (
+              <button onClick={() => act('host:revealValues')}>Reveal Values</button>
             )}
+
+            {!state.boardRevealed &&
+              state.valuesRevealed &&
+              (state.categoryIntroStep === null || state.categoryIntroStep === undefined) && (
+                <button onClick={() => act('host:startCategoryIntro')}>Show Logo</button>
+              )}
 
             {!state.boardRevealed && state.categoryIntroStep !== null && state.categoryIntroStep !== undefined && (
               <>

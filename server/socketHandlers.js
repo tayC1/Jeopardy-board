@@ -80,6 +80,7 @@ export function registerSocketHandlers(io) {
     socket.on('host:testPlayerBuzz', (_payload, cb) => withRoom(socket, cb, (room) => room.testPlayerBuzz()));
 
     socket.on('host:startBoardRound', (_payload, cb) => withRoom(socket, cb, (room) => room.startBoardRound()));
+    socket.on('host:revealValues', (_payload, cb) => withRoom(socket, cb, (room) => room.revealValues()));
     socket.on('host:startCategoryIntro', (_payload, cb) => withRoom(socket, cb, (room) => room.startCategoryIntro()));
     socket.on('host:advanceCategoryIntro', (_payload, cb) => withRoom(socket, cb, (room) => room.advanceCategoryIntro()));
     socket.on('host:selectClue', ({ catIndex, clueIndex }, cb) =>
