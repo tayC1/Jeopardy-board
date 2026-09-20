@@ -45,10 +45,12 @@ export default function Board({ board, onSelectClue, boardRevealed = true }) {
     >
       {board.categories.map((cat, catIndex) => (
         <div className="category-header" key={cat.name}>
-          {boardRevealed && (
+          {boardRevealed ? (
             <span className="reveal-tile" style={{ animationDelay: `${categoryDelays[catIndex]}ms` }}>
               {cat.name}
             </span>
+          ) : (
+            <img className="category-placeholder-logo" src="/favicon.svg" alt="" />
           )}
         </div>
       ))}

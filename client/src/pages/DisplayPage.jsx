@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { socket, emitAsync } from '../lib/socket.js';
 import Board from '../components/Board.jsx';
 import Scoreboard from '../components/Scoreboard.jsx';
+import PlayQrCode from '../components/PlayQrCode.jsx';
 
 export default function DisplayPage() {
   const { code } = useParams();
@@ -46,6 +47,7 @@ export default function DisplayPage() {
         <div className="page center-page phase-fade-in">
           <div className="title">Room {state.code}</div>
           <p className="subtitle">Waiting for the host to start the game...</p>
+          <PlayQrCode code={state.code} />
         </div>
       )}
 
@@ -56,11 +58,15 @@ export default function DisplayPage() {
         </div>
       )}
 
-      {state.categoryIntroIndex !== null && state.categoryIntroIndex !== undefined && (
+      {state.categoryIntroStep !== null && state.categoryIntroStep !== undefined && (
         <div className="category-intro">
-          <div key={state.categoryIntroIndex} className="category-intro-name">
-            {state.board.categories[state.categoryIntroIndex]?.name}
-          </div>
+          {state.categoryIntroStep % 2 === 0 ? (
+            <img key={state.categoryIntroStep} className="category-intro-logo" src="/favicon.svg" alt="" />
+          ) : (
+            <div key={state.categoryIntroStep} className="category-intro-name">
+              {state.board.categories[Math.floor(state.categoryIntroStep / 2)]?.name}
+            </div>
+          )}
         </div>
       )}
 

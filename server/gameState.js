@@ -31,7 +31,7 @@ export class Room {
     this.hostSocketId = null;
     this.testPlayerId = null;
     this.boardRevealed = false;
-    this.categoryIntroIndex = null;
+    this.categoryIntroStep = null; // alternates logo(even)/category(odd): 0=logo, 1=cat0, 2=logo, 3=cat1, ...
     this.buzzTimeoutHandle = null;
   }
 
@@ -79,18 +79,18 @@ export class Room {
   startCategoryIntro() {
     if (this.phase !== 'board') return { ok: false, error: 'Not on the board right now' };
     if (this.boardRevealed) return { ok: false, error: 'Categories already revealed' };
-    if (this.categoryIntroIndex !== null) return { ok: false, error: 'Category intro already in progress' };
-    this.categoryIntroIndex = 0;
+    if (this.categoryIntroStep !== null) return { ok: false, error: 'Category intro already in progress' };
+    this.categoryIntroStep = 0; // step 0 = logo, before category 0
     return { ok: true };
   }
 
   advanceCategoryIntro() {
-    if (this.categoryIntroIndex === null) return { ok: false, error: 'Category intro not started' };
-    const numCategories = this.board.categories.length;
-    if (this.categoryIntroIndex < numCategories - 1) {
-      this.categoryIntroIndex += 1;
+    if (this.categoryIntroStep === null) return { ok: false, error: 'Category intro not started' };
+    const totalSteps = this.board.categories.length * 2; // logo+category per category
+    if (this.categoryIntroStep < totalSteps - 1) {
+      this.categoryIntroStep += 1;
     } else {
-      this.categoryIntroIndex = null;
+      this.categoryIntroStep = null;
       this.boardRevealed = true;
     }
     return { ok: true };
@@ -218,7 +218,7 @@ export class Room {
     if (this.phase !== 'lobby') return { ok: false, error: 'Game already started' };
     this.phase = 'board';
     this.boardRevealed = false;
-    this.categoryIntroIndex = null;
+    this.categoryIntroStep = null;
     return { ok: true };
   }
 
@@ -230,7 +230,7 @@ export class Room {
     this.round = 2;
     this.board = buildRoundBoard(this.rawBoard, 2);
     this.boardRevealed = false;
-    this.categoryIntroIndex = null;
+    this.categoryIntroStep = null;
     this.currentClue = null;
     this._clearBuzzTimer();
     this.buzz = emptyBuzz();
@@ -339,7 +339,7 @@ export class Room {
       final: this.final,
       testPlayerId: this.testPlayerId,
       boardRevealed: this.boardRevealed,
-      categoryIntroIndex: this.categoryIntroIndex,
+      categoryIntroStep: this.categoryIntroStep,
       round: this.round,
       hasRound2: this.hasRound2,
     };
@@ -419,7 +419,7 @@ export class Room {
       buzz: this.buzz,
       final,
       boardRevealed: this.boardRevealed,
-      categoryIntroIndex: this.categoryIntroIndex,
+      categoryIntroStep: this.categoryIntroStep,
       round: this.round,
     };
   }

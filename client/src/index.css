@@ -198,6 +198,12 @@ a {
   animation: category-intro-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
 }
 
+.category-intro-logo {
+  width: clamp(160px, 28vw, 420px);
+  height: auto;
+  animation: category-intro-pop 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
+
 /* Board grid */
 .board-container {
   display: flex;
@@ -228,6 +234,12 @@ a {
   border-radius: 6px;
   font-size: clamp(0.9rem, min(2.6vw, 3.4vh), 2.2rem);
   min-height: 4.5rem;
+}
+
+.category-placeholder-logo {
+  width: clamp(1.8rem, min(4vw, 5vh), 3.2rem);
+  height: auto;
+  opacity: 0.85;
 }
 
 .clue-cell {
@@ -537,4 +549,35 @@ a {
 .display-page .error-banner {
   font-size: 1.8rem;
   padding: 1.2rem 2rem;
+}
+
+.play-qr {
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.play-qr img {
+  display: block;
+  width: 220px;
+  height: 220px;
+}
+
+.play-qr-caption {
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.display-page .play-qr img {
+  width: 320px;
+  height: 320px;
+}
+
+.display-page .play-qr-caption {
+  font-size: 1.4rem;
 }

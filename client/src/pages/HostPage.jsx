@@ -123,11 +123,12 @@ export default function HostPage() {
           <div className="subtitle">Room Code</div>
           <div className="room-code">{state.code}</div>
         </div>
-        <div className="subtitle">
-          Display: <code>{`${location.origin}/display/${state.code}`}</code>
-          <br />
-          Play: <code>{`${location.origin}/play/${state.code}`}</code>
-        </div>
+        <button
+          className="secondary"
+          onClick={() => window.open(`${location.origin}/display/${state.code}`, '_blank')}
+        >
+          Display
+        </button>
         <button
           className="secondary"
           onClick={() => act(hasTestPlayer ? 'host:removeTestPlayer' : 'host:addTestPlayer')}
@@ -142,7 +143,7 @@ export default function HostPage() {
 
       {state.phase === 'lobby' && (
         <div className="page center-page phase-fade-in">
-          <p>Waiting for players to join at /play/{state.code}...</p>
+          <p>Waiting for players to join...</p>
           <button disabled={state.players.length === 0} onClick={() => act('host:startBoardRound')}>
             Start Game ({state.players.length} joined)
           </button>
@@ -159,19 +160,23 @@ export default function HostPage() {
             onSelectClue={(catIndex, clueIndex) => act('host:selectClue', { catIndex, clueIndex })}
           />
           <div className="host-controls">
-            {!state.boardRevealed && (state.categoryIntroIndex === null || state.categoryIntroIndex === undefined) && (
+            {!state.boardRevealed && (state.categoryIntroStep === null || state.categoryIntroStep === undefined) && (
               <button onClick={() => act('host:startCategoryIntro')}>Reveal Categories</button>
             )}
 
-            {!state.boardRevealed && state.categoryIntroIndex !== null && state.categoryIntroIndex !== undefined && (
+            {!state.boardRevealed && state.categoryIntroStep !== null && state.categoryIntroStep !== undefined && (
               <>
                 <div className="subtitle">
-                  Now announcing: {state.board.categories[state.categoryIntroIndex]?.name}
+                  {state.categoryIntroStep % 2 === 0
+                    ? 'Showing the intro logo...'
+                    : `Now announcing: ${state.board.categories[Math.floor(state.categoryIntroStep / 2)]?.name}`}
                 </div>
                 <button onClick={() => act('host:advanceCategoryIntro')}>
-                  {state.categoryIntroIndex >= state.board.categories.length - 1
+                  {state.categoryIntroStep >= state.board.categories.length * 2 - 1
                     ? 'Show Board'
-                    : `Next Category (${state.categoryIntroIndex + 2}/${state.board.categories.length})`}
+                    : state.categoryIntroStep % 2 === 0
+                      ? 'Show Category'
+                      : `Next Category (${Math.floor(state.categoryIntroStep / 2) + 2}/${state.board.categories.length})`}
                 </button>
               </>
             )}
