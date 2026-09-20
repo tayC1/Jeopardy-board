@@ -10,6 +10,10 @@ export default function DisplayPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    document.title = 'Display';
+  }, []);
+
+  useEffect(() => {
     function onState(s) {
       setState(s);
     }
@@ -72,7 +76,6 @@ export default function DisplayPage() {
       {(state.phase === 'clue' || state.phase === 'dd_clue') && (
         <div className="clue-overlay phase-fade-in">
           {state.phase === 'dd_clue' && <div className="daily-double-banner">Daily Double</div>}
-          <div className="clue-value-tag">${state.currentClue?.value}</div>
           <div className="clue-text">{state.currentClue?.clue}</div>
           {state.phase === 'dd_clue' && state.dailyDoubleActive && (
             <p className="subtitle">

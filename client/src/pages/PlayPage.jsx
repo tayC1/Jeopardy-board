@@ -19,6 +19,10 @@ export default function PlayPage() {
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
 
   useEffect(() => {
+    document.title = 'Player';
+  }, []);
+
+  useEffect(() => {
     function onState(s) {
       setState((prev) => {
         if (!prev || prev.phase !== s.phase) {
@@ -156,7 +160,6 @@ export default function PlayPage() {
 
       {(state.phase === 'clue' || state.phase === 'dd_clue') && (
         <div className="page center-page" style={{ flex: 1 }}>
-          <div className="clue-value-tag">${state.currentClue?.value}</div>
           {state.phase === 'dd_clue' ? (
             <p className="subtitle">Daily Double in progress...</p>
           ) : (
