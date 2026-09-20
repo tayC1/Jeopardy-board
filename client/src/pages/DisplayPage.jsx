@@ -54,7 +54,12 @@ export default function DisplayPage() {
       {state.phase === 'board' && (
         <div className="board-container phase-fade-in">
           {state.round === 2 && <div className="round-banner">Round 2 — Double Jeopardy</div>}
-          <Board key={state.round} board={state.board} boardRevealed={state.boardRevealed} />
+          <Board
+            key={state.round}
+            board={state.board}
+            boardRevealed={state.boardRevealed}
+            valuesRevealed={state.boardRevealed || state.categoryIntroStep !== null}
+          />
         </div>
       )}
 

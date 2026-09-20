@@ -145,7 +145,12 @@ export default function PlayPage() {
       {state.phase === 'board' && (
         <div className="board-container">
           {state.round === 2 && <div className="round-banner">Round 2 — Double Jeopardy</div>}
-          <Board key={state.round} board={state.board} boardRevealed={state.boardRevealed} />
+          <Board
+            key={state.round}
+            board={state.board}
+            boardRevealed={state.boardRevealed}
+            valuesRevealed={state.boardRevealed || state.categoryIntroStep !== null}
+          />
           <p className="subtitle" style={{ textAlign: 'center' }}>
             Watch the display — the host is picking the next clue.
           </p>

@@ -157,6 +157,7 @@ export default function HostPage() {
             key={state.round}
             board={state.board}
             boardRevealed={state.boardRevealed}
+            valuesRevealed={state.boardRevealed || state.categoryIntroStep !== null}
             onSelectClue={(catIndex, clueIndex) => act('host:selectClue', { catIndex, clueIndex })}
           />
           <div className="host-controls">

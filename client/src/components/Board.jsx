@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 function shuffledDelays(count, stepMs) {
   const order = Array.from({ length: count }, (_, i) => i);
@@ -13,21 +13,7 @@ function shuffledDelays(count, stepMs) {
   return delays;
 }
 
-export default function Board({ board, onSelectClue, boardRevealed = true }) {
-  const [valuesRevealed, setValuesRevealed] = useState(() => boardRevealed);
-
-  useEffect(() => {
-    if (boardRevealed) {
-      setValuesRevealed(true);
-      return;
-    }
-    const timer = setTimeout(() => setValuesRevealed(true), 500);
-    return () => clearTimeout(timer);
-    // Intentionally mount-only: the values reveal is a one-time intro beat that
-    // shouldn't restart just because boardRevealed flips later in this round.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+export default function Board({ board, onSelectClue, boardRevealed = true, valuesRevealed = true }) {
   const numCategories = board.categories.length;
   const numRows = board.categories[0]?.clues.length || 0;
   const cellCount = numCategories * numRows;
