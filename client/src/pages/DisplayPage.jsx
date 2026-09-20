@@ -1,39 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { socket, emitAsync } from '../lib/socket.js';
 import Board from '../components/Board.jsx';
 import Scoreboard from '../components/Scoreboard.jsx';
 
-function CategoryIntro({ categories, onDone }) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (index >= categories.length - 1) {
-        onDone();
-      } else {
-        setIndex((i) => i + 1);
-      }
-    }, 1100);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
-
-  return (
-    <div className="category-intro">
-      <div key={index} className="category-intro-name">
-        {categories[index]?.name}
-      </div>
-    </div>
-  );
-}
-
 export default function DisplayPage() {
   const { code } = useParams();
   const [state, setState] = useState(null);
   const [error, setError] = useState('');
-  const [introPlaying, setIntroPlaying] = useState(false);
-  const prevRevealedRef = useRef(null);
 
   useEffect(() => {
     function onState(s) {
@@ -43,14 +17,6 @@ export default function DisplayPage() {
     emitAsync('display:joinRoom', { code }).catch((err) => setError(err.message));
     return () => socket.off('state:public', onState);
   }, [code]);
-
-  useEffect(() => {
-    if (!state) return;
-    if (prevRevealedRef.current === false && state.boardRevealed === true) {
-      setIntroPlaying(true);
-    }
-    prevRevealedRef.current = state.boardRevealed ?? null;
-  }, [state]);
 
   if (error) {
     return (
@@ -86,8 +52,12 @@ export default function DisplayPage() {
         </div>
       )}
 
-      {introPlaying && (
-        <CategoryIntro categories={state.board.categories} onDone={() => setIntroPlaying(false)} />
+      {state.categoryIntroIndex !== null && state.categoryIntroIndex !== undefined && (
+        <div className="category-intro">
+          <div key={state.categoryIntroIndex} className="category-intro-name">
+            {state.board.categories[state.categoryIntroIndex]?.name}
+          </div>
+        </div>
       )}
 
       {state.phase === 'revealing_dd' && (

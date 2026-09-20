@@ -141,17 +141,33 @@ export default function HostPage() {
             onSelectClue={(catIndex, clueIndex) => act('host:selectClue', { catIndex, clueIndex })}
           />
           <div className="host-controls">
-            {!state.boardRevealed ? (
-              <button onClick={() => act('host:revealCategories')}>Reveal Categories</button>
-            ) : state.hasRound2 && state.round === 1 ? (
-              <button disabled={!allAnswered} onClick={() => act('host:startRound2')}>
-                Start Round 2
-              </button>
-            ) : (
-              <button disabled={!allAnswered} onClick={() => act('host:startFinal')}>
-                Start Final Jeopardy
-              </button>
+            {!state.boardRevealed && (state.categoryIntroIndex === null || state.categoryIntroIndex === undefined) && (
+              <button onClick={() => act('host:startCategoryIntro')}>Reveal Categories</button>
             )}
+
+            {!state.boardRevealed && state.categoryIntroIndex !== null && state.categoryIntroIndex !== undefined && (
+              <>
+                <div className="subtitle">
+                  Now announcing: {state.board.categories[state.categoryIntroIndex]?.name}
+                </div>
+                <button onClick={() => act('host:advanceCategoryIntro')}>
+                  {state.categoryIntroIndex >= state.board.categories.length - 1
+                    ? 'Show Board'
+                    : `Next Category (${state.categoryIntroIndex + 2}/${state.board.categories.length})`}
+                </button>
+              </>
+            )}
+
+            {state.boardRevealed &&
+              (state.hasRound2 && state.round === 1 ? (
+                <button disabled={!allAnswered} onClick={() => act('host:startRound2')}>
+                  Start Round 2
+                </button>
+              ) : (
+                <button disabled={!allAnswered} onClick={() => act('host:startFinal')}>
+                  Start Final Jeopardy
+                </button>
+              ))}
           </div>
         </div>
       )}

@@ -27,6 +27,7 @@ export class Room {
     this.hostSocketId = null;
     this.testPlayerId = null;
     this.boardRevealed = false;
+    this.categoryIntroIndex = null;
   }
 
   addTestPlayer() {
@@ -70,10 +71,23 @@ export class Room {
     return this.board.categories.every((cat) => cat.clues.every((c) => c.answered));
   }
 
-  revealCategories() {
+  startCategoryIntro() {
     if (this.phase !== 'board') return { ok: false, error: 'Not on the board right now' };
     if (this.boardRevealed) return { ok: false, error: 'Categories already revealed' };
-    this.boardRevealed = true;
+    if (this.categoryIntroIndex !== null) return { ok: false, error: 'Category intro already in progress' };
+    this.categoryIntroIndex = 0;
+    return { ok: true };
+  }
+
+  advanceCategoryIntro() {
+    if (this.categoryIntroIndex === null) return { ok: false, error: 'Category intro not started' };
+    const numCategories = this.board.categories.length;
+    if (this.categoryIntroIndex < numCategories - 1) {
+      this.categoryIntroIndex += 1;
+    } else {
+      this.categoryIntroIndex = null;
+      this.boardRevealed = true;
+    }
     return { ok: true };
   }
 
@@ -186,6 +200,7 @@ export class Room {
     if (this.phase !== 'lobby') return { ok: false, error: 'Game already started' };
     this.phase = 'board';
     this.boardRevealed = false;
+    this.categoryIntroIndex = null;
     return { ok: true };
   }
 
@@ -197,6 +212,7 @@ export class Room {
     this.round = 2;
     this.board = buildRoundBoard(this.rawBoard, 2);
     this.boardRevealed = false;
+    this.categoryIntroIndex = null;
     this.currentClue = null;
     this.buzz = { open: false, lockedPlayerId: null, lockedOutIds: [] };
     this.dailyDouble = null;
@@ -304,6 +320,7 @@ export class Room {
       final: this.final,
       testPlayerId: this.testPlayerId,
       boardRevealed: this.boardRevealed,
+      categoryIntroIndex: this.categoryIntroIndex,
       round: this.round,
       hasRound2: this.hasRound2,
     };
@@ -383,6 +400,7 @@ export class Room {
       buzz: this.buzz,
       final,
       boardRevealed: this.boardRevealed,
+      categoryIntroIndex: this.categoryIntroIndex,
       round: this.round,
     };
   }
