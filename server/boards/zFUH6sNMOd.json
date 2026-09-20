@@ -1,0 +1,44 @@
+{
+  "title": "TV Scale Test",
+  "categories": [
+    {
+      "name": "SCIENCE",
+      "clues": [
+        {
+          "value": 200,
+          "clue": "c1",
+          "answer": "a1",
+          "dailyDouble": false
+        },
+        {
+          "value": 400,
+          "clue": "c2",
+          "answer": "a2",
+          "dailyDouble": true
+        }
+      ]
+    },
+    {
+      "name": "MOVIES",
+      "clues": [
+        {
+          "value": 200,
+          "clue": "What classic 90s film is this from?",
+          "answer": "What is Jurassic Park?",
+          "dailyDouble": false
+        },
+        {
+          "value": 400,
+          "clue": "c4",
+          "answer": "a4",
+          "dailyDouble": false
+        }
+      ]
+    }
+  ],
+  "finalJeopardy": {
+    "category": "History",
+    "clue": "This event happened in 1776",
+    "answer": "What is the Declaration of Independence?"
+  }
+}

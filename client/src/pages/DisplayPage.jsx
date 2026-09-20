@@ -24,7 +24,7 @@ export default function DisplayPage() {
 
   if (error) {
     return (
-      <div className="page center-page">
+      <div className="page center-page display-page">
         <div className="error-banner">{error}</div>
       </div>
     );
@@ -32,14 +32,14 @@ export default function DisplayPage() {
 
   if (!state) {
     return (
-      <div className="page center-page">
+      <div className="page center-page display-page">
         <div className="title">Connecting...</div>
       </div>
     );
   }
 
   return (
-    <div className="page">
+    <div className="page display-page">
       <Scoreboard players={state.players} buzz={state.buzz} />
 
       {state.phase === 'lobby' && (

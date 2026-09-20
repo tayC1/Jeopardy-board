@@ -471,3 +471,70 @@ a {
 .final-reveal-card.incorrect {
   border: 3px solid var(--jep-red);
 }
+
+/* TV mode: a 55"+ display is viewed from across a room, so text needs to be
+   much larger in absolute terms than a laptop/phone screen at the same
+   pixel resolution — vw/vh sizing alone doesn't capture that. */
+.display-page .title {
+  font-size: 4.5rem;
+}
+
+.display-page .subtitle {
+  font-size: 2.2rem;
+}
+
+.display-page .clue-overlay {
+  gap: 2.5rem;
+  padding: 3rem;
+}
+
+.display-page .clue-text {
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+  max-width: 1400px;
+}
+
+.display-page .daily-double-banner {
+  font-size: clamp(3rem, 7vw, 6rem);
+}
+
+.display-page .round-banner {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 1rem;
+}
+
+.display-page .room-code {
+  font-size: 5rem;
+}
+
+.display-page .score-pill {
+  padding: 0.85rem 1.5rem;
+  min-width: 160px;
+}
+
+.display-page .score-pill .name {
+  font-size: 1.3rem;
+}
+
+.display-page .score-pill .score {
+  font-size: 2.2rem;
+}
+
+.display-page .final-reveal-card {
+  padding: 2.5rem;
+  max-width: 900px;
+}
+
+.display-page .final-reveal-card h3 {
+  font-size: 2.2rem;
+  margin: 0 0 0.5rem;
+}
+
+.display-page .final-reveal-card p {
+  font-size: 1.6rem;
+  margin: 0.4rem 0;
+}
+
+.display-page .error-banner {
+  font-size: 1.8rem;
+  padding: 1.2rem 2rem;
+}

@@ -36,9 +36,8 @@
       "clues":[
         {"value": 200, "clue": "This character/player somehow has/had the ability to do horibly on critical dice roles", "answer":"Who is Caleb/Talonvier?", "dailyDouble": false},
         {"value": 400, "clue": "This character/player has the ability to create and destroy water", "answer": "Who is Cole/Flumps?", "dailyDouble": false},
-        {"value": 400, "clue": "This character/player has the ability to beomce a giant", "answer":"Who is Jer-bear/meldin?", "dailyDouble": false},
         {"value": 600, "clue": "This character/player has some accessories with some interesting contents.", "answer": "Who is Stephen/Max", "dailyDouble": false},
-        {"value": 800, "clue": "This character/player has a proclivity for drinking beer and offending bird girls", "answer": "Who is Deveon/Uurch"},
+        {"value": 800, "clue": "This character/player has the ability to beomce a giant", "answer":"Who is Jer-bear/meldin?", "dailyDouble": false},
         {"value": 1000, "clue": "This character/player has ties to the city government of Carpathia", "answer": "who is Lando/Edrin"}
       ]
     }
