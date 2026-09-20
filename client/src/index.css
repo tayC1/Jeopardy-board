@@ -440,6 +440,14 @@ a {
   padding: 1rem 0;
 }
 
+.countdown-timer {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--jep-gold);
+  width: 100%;
+  text-align: center;
+}
+
 .room-code {
   font-size: 3rem;
   font-weight: 900;

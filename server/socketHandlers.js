@@ -1,6 +1,8 @@
 import { createRoom, getRoom } from './rooms.js';
 import { getBoard } from './boardStore.js';
 
+const BUZZ_AUTO_SKIP_MS = 20000;
+
 function broadcast(io, room) {
   if (room.hostSocketId) {
     io.to(room.hostSocketId).emit('state:host', room.toHostState());
@@ -86,7 +88,20 @@ export function registerSocketHandlers(io) {
     socket.on('host:dailyDoubleWager', ({ playerId, wager }, cb) =>
       withRoom(socket, cb, (room) => room.setDailyDoubleWager(playerId, wager))
     );
-    socket.on('host:openBuzzers', (_payload, cb) => withRoom(socket, cb, (room) => room.openBuzzers()));
+    socket.on('host:openBuzzers', (_payload, cb) =>
+      withRoom(socket, cb, (room) => {
+        const result = room.openBuzzers();
+        if (result.ok) {
+          room._clearBuzzTimer();
+          room.buzzTimeoutHandle = setTimeout(() => {
+            room.buzzTimeoutHandle = null;
+            const skipResult = room.revealAndSkip();
+            if (skipResult.ok) broadcast(io, room);
+          }, BUZZ_AUTO_SKIP_MS);
+        }
+        return result;
+      })
+    );
     socket.on('host:judge', ({ correct }, cb) => withRoom(socket, cb, (room) => room.judge(correct)));
     socket.on('host:revealAndSkip', (_payload, cb) => withRoom(socket, cb, (room) => room.revealAndSkip()));
     socket.on('host:startRound2', (_payload, cb) => withRoom(socket, cb, (room) => room.startRound2()));

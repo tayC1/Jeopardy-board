@@ -1,5 +1,9 @@
 import { nanoid } from 'nanoid';
 
+function emptyBuzz() {
+  return { open: false, lockedPlayerId: null, lockedOutIds: [], openedAt: null, lockedAt: null };
+}
+
 function buildRoundBoard(rawBoard, round) {
   const categories = round === 2 ? rawBoard.round2.categories : rawBoard.categories;
   return {
@@ -21,13 +25,14 @@ export class Room {
     this.phase = 'lobby'; // lobby | board | revealing_dd | clue | dd_clue | final_wager | final_clue | final_reveal | game_over
     this.players = new Map(); // id -> { id, name, score, connected }
     this.currentClue = null; // { catIndex, clueIndex, value, dailyDouble }
-    this.buzz = { open: false, lockedPlayerId: null, lockedOutIds: [] };
+    this.buzz = emptyBuzz();
     this.dailyDouble = null; // { playerId, wager }
     this.final = null; // { category, clue, answer, wagers: {}, answers: {}, order: [], revealIndex: -1, results: {} }
     this.hostSocketId = null;
     this.testPlayerId = null;
     this.boardRevealed = false;
     this.categoryIntroIndex = null;
+    this.buzzTimeoutHandle = null;
   }
 
   addTestPlayer() {
@@ -91,6 +96,11 @@ export class Room {
     return { ok: true };
   }
 
+  _clearBuzzTimer() {
+    clearTimeout(this.buzzTimeoutHandle);
+    this.buzzTimeoutHandle = null;
+  }
+
   selectClue(catIndex, clueIndex) {
     if (this.phase !== 'board') return { ok: false, error: 'Not accepting clue selection right now' };
     if (!this.boardRevealed) return { ok: false, error: 'Reveal the categories first' };
@@ -99,7 +109,8 @@ export class Room {
     if (!clue || clue.answered) return { ok: false, error: 'Invalid clue' };
 
     this.currentClue = { catIndex, clueIndex, value: clue.value, dailyDouble: clue.dailyDouble };
-    this.buzz = { open: false, lockedPlayerId: null, lockedOutIds: [] };
+    this._clearBuzzTimer();
+    this.buzz = emptyBuzz();
 
     if (clue.dailyDouble) {
       this.phase = 'revealing_dd';
@@ -125,6 +136,8 @@ export class Room {
     if (this.phase !== 'clue') return { ok: false, error: 'Buzzers only open during a regular clue' };
     this.buzz.open = true;
     this.buzz.lockedPlayerId = null;
+    this.buzz.openedAt = Date.now();
+    this.buzz.lockedAt = null;
     return { ok: true };
   }
 
@@ -132,8 +145,10 @@ export class Room {
     if (this.phase !== 'clue' || !this.buzz.open) return { ok: false, error: 'Buzzer is not open' };
     if (this.buzz.lockedOutIds.includes(playerId)) return { ok: false, error: 'You are locked out for this clue' };
     if (this.buzz.lockedPlayerId) return { ok: false, error: 'Someone already buzzed in' };
+    this._clearBuzzTimer();
     this.buzz.lockedPlayerId = playerId;
     this.buzz.open = false;
+    this.buzz.lockedAt = Date.now();
     return { ok: true };
   }
 
@@ -159,11 +174,13 @@ export class Room {
       if (correct) {
         this._markCurrentClueAnswered();
         this.currentClue = null;
-        this.buzz = { open: false, lockedPlayerId: null, lockedOutIds: [] };
+        this._clearBuzzTimer();
+        this.buzz = emptyBuzz();
         this.phase = 'board';
       } else {
         this.buzz.lockedOutIds.push(playerId);
         this.buzz.lockedPlayerId = null;
+        this.buzz.lockedAt = null;
         const remaining = [...this.players.values()].filter(
           (p) => p.connected && !this.buzz.lockedOutIds.includes(p.id)
         );
@@ -185,7 +202,8 @@ export class Room {
     this._markCurrentClueAnswered();
     this.currentClue = null;
     this.dailyDouble = null;
-    this.buzz = { open: false, lockedPlayerId: null, lockedOutIds: [] };
+    this._clearBuzzTimer();
+    this.buzz = emptyBuzz();
     this.phase = 'board';
     return { ok: true };
   }
@@ -214,7 +232,8 @@ export class Room {
     this.boardRevealed = false;
     this.categoryIntroIndex = null;
     this.currentClue = null;
-    this.buzz = { open: false, lockedPlayerId: null, lockedOutIds: [] };
+    this._clearBuzzTimer();
+    this.buzz = emptyBuzz();
     this.dailyDouble = null;
     return { ok: true };
   }

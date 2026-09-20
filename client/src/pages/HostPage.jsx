@@ -4,6 +4,24 @@ import { socket, emitAsync } from '../lib/socket.js';
 import Board from '../components/Board.jsx';
 import Scoreboard from '../components/Scoreboard.jsx';
 
+function CountdownTimer({ startedAt, durationSec, label }) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 200);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!startedAt) return null;
+  const remaining = Math.max(0, Math.ceil(durationSec - (now - startedAt) / 1000));
+
+  return (
+    <div className="countdown-timer">
+      {label}: {remaining}s
+    </div>
+  );
+}
+
 export default function HostPage() {
   const { code } = useParams();
   const navigate = useNavigate();
@@ -218,6 +236,9 @@ export default function HostPage() {
             <div className="host-controls">
               {!state.buzz.open && <button onClick={() => act('host:openBuzzers')}>Open Buzzers</button>}
               {state.buzz.open && <div className="subtitle">Buzzers open — waiting for a buzz-in...</div>}
+              {state.buzz.open && (
+                <CountdownTimer startedAt={state.buzz.openedAt} durationSec={20} label="Auto-skip in" />
+              )}
               {state.buzz.open && hasTestPlayer && (
                 <button className="secondary" onClick={() => act('host:testPlayerBuzz')}>
                   Buzz (Test Player)
@@ -234,6 +255,7 @@ export default function HostPage() {
               <div className="subtitle">
                 {state.players.find((p) => p.id === state.buzz.lockedPlayerId)?.name} buzzed in!
               </div>
+              <CountdownTimer startedAt={state.buzz.lockedAt} durationSec={7} label="Answer time" />
               <button className="correct" onClick={() => act('host:judge', { correct: true })}>
                 Correct
               </button>
