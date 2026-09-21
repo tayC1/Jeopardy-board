@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { listBoards, getBoard, saveBoard, deleteBoard } from '../boardStore.js';
 import { csvToBoard } from '../csvImport.js';
+import { generateRandomBoard } from '../triviaApi.js';
 
 const router = Router();
 
@@ -55,6 +56,19 @@ router.post('/import-csv', async (req, res) => {
     res.json({ board });
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+router.post('/generate-random', async (req, res) => {
+  try {
+    const { numCategories, includeRound2 } = req.body || {};
+    const board = await generateRandomBoard({
+      numCategories,
+      includeRound2: !!includeRound2,
+    });
+    res.json({ board });
+  } catch (err) {
+    res.status(502).json({ error: err.message });
   }
 });
 

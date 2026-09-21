@@ -19,6 +19,9 @@ export default function EditorPage() {
   const [board, setBoard] = useState(emptyBoard());
   const [boards, setBoards] = useState([]);
   const [status, setStatus] = useState('');
+  const [prepNumCategories, setPrepNumCategories] = useState(5);
+  const [prepIncludeRound2, setPrepIncludeRound2] = useState(false);
+  const [prepLoading, setPrepLoading] = useState(false);
 
   useEffect(() => {
     fetch('/api/boards')
@@ -152,6 +155,30 @@ export default function EditorPage() {
     e.target.value = '';
   }
 
+  async function generateTaylorsPrep() {
+    setPrepLoading(true);
+    setStatus('Fetching trivia from Open Trivia DB... this can take a minute (API rate limits).');
+    try {
+      const res = await fetch('/api/boards/generate-random', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ numCategories: prepNumCategories, includeRound2: prepIncludeRound2 }),
+      });
+      const data = await res.json();
+      if (data.board) {
+        setBoard({ round2: null, ...data.board });
+        setBoardId('');
+        setStatus("Taylor's Prep board generated — review and save.");
+      } else {
+        setStatus('Error: ' + data.error);
+      }
+    } catch (err) {
+      setStatus('Error: ' + err.message);
+    } finally {
+      setPrepLoading(false);
+    }
+  }
+
   return (
     <div className="page">
       <div className="top-bar">
@@ -176,6 +203,40 @@ export default function EditorPage() {
       </div>
 
       {status && <div className="subtitle">{status}</div>}
+
+      <div className="card" style={{ maxWidth: 'none', marginBottom: '1rem' }}>
+        <div className="title" style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>
+          Taylor's Prep
+        </div>
+        <div className="subtitle" style={{ marginBottom: '0.75rem' }}>
+          Auto-generate a board from random trivia categories (Open Trivia DB). Loads into the editor below for review before
+          saving.
+        </div>
+        <div className="row" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <label>
+            Categories
+            <input
+              type="number"
+              min="2"
+              max="10"
+              value={prepNumCategories}
+              onChange={(e) => setPrepNumCategories(Number(e.target.value))}
+              style={{ width: '70px', marginLeft: '0.5rem' }}
+            />
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={prepIncludeRound2}
+              onChange={(e) => setPrepIncludeRound2(e.target.checked)}
+            />{' '}
+            Include Round 2
+          </label>
+          <button onClick={generateTaylorsPrep} disabled={prepLoading}>
+            {prepLoading ? 'Generating...' : "Generate Taylor's Prep Board"}
+          </button>
+        </div>
+      </div>
 
       <div className="card" style={{ maxWidth: 'none', marginBottom: '1rem' }}>
         <label>Board Title</label>
