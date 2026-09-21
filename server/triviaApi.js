@@ -1,12 +1,29 @@
-// Builds random Jeopardy boards from the Open Trivia Database (opentdb.com).
+// Builds boards from the Open Trivia DB (opentdb.com) — a large bank of
+// general trivia. OTDB questions are phrased as questions rather than
+// Jeopardy-style statements, so we best-effort convert them: "Who/Which/What
+// <noun> <verb phrase>?" swaps its lead-in word for "This"/"This person" and
+// drops the question mark, since that word order is identical either way
+// ("Which composer wrote X?" -> "This composer wrote X."). Phrasings that
+// don't fit that shape (e.g. "Where.../When...") are left as the original
+// question — still playable, just not full Jeopardy style.
+//
 // OTDB enforces one request every ~5 seconds per IP, so category fetches run
 // sequentially with a spacing delay rather than in parallel.
+import { sanitizeText, formatAnswer } from './clueFormat.js';
+
 const OTDB_BASE = 'https://opentdb.com';
 const REQUEST_SPACING_MS = 5200;
 const DIFFICULTY_RANK = { easy: 0, medium: 1, hard: 2 };
 
 const ROUND1_VALUES = [200, 400, 600, 800, 1000];
 const ROUND2_VALUES = [400, 800, 1200, 1600, 2000];
+
+const LEAD_IN_SWAPS = [
+  [/^Who\b/i, 'This person'],
+  [/^Which of the following\b/i, 'This'],
+  [/^Which\b/i, 'This'],
+  [/^What\b/i, 'This'],
+];
 
 function decode(str) {
   try {
@@ -42,7 +59,7 @@ export async function fetchTriviaCategories() {
 }
 
 async function fetchCategoryQuestions(categoryId, amount) {
-  const url = `${OTDB_BASE}/api.php?amount=${amount}&category=${categoryId}&encode=url3986`;
+  const url = `${OTDB_BASE}/api.php?amount=${amount}&category=${categoryId}&type=multiple&encode=url3986`;
   for (let attempt = 0; attempt < 3; attempt++) {
     const data = await fetchJson(url);
     if (data.response_code === 5) {
@@ -56,6 +73,16 @@ async function fetchCategoryQuestions(categoryId, amount) {
   return [];
 }
 
+function toClueStatement(rawQuestion) {
+  const question = sanitizeText(decode(rawQuestion));
+  for (const [pattern, replacement] of LEAD_IN_SWAPS) {
+    if (pattern.test(question)) {
+      return question.replace(pattern, replacement).replace(/\?\s*$/, '.');
+    }
+  }
+  return question;
+}
+
 function buildClues(questions, values) {
   const sorted = [...questions].sort(
     (a, b) => (DIFFICULTY_RANK[a.difficulty] ?? 1) - (DIFFICULTY_RANK[b.difficulty] ?? 1)
@@ -63,8 +90,8 @@ function buildClues(questions, values) {
   const count = Math.min(sorted.length, values.length);
   const clues = sorted.slice(0, count).map((q, i) => ({
     value: values[i],
-    clue: decode(q.question),
-    answer: decode(q.correct_answer),
+    clue: toClueStatement(q.question),
+    answer: formatAnswer(decode(q.correct_answer)),
     dailyDouble: false,
   }));
   if (clues.length > 1) {
@@ -113,8 +140,8 @@ export async function generateRandomBoard({ numCategories = 5, includeRound2 = f
     } else if (needFinal) {
       final = {
         category: cat.name,
-        clue: decode(questions[0].question),
-        answer: decode(questions[0].correct_answer),
+        clue: toClueStatement(questions[0].question),
+        answer: formatAnswer(decode(questions[0].correct_answer)),
       };
     }
   }

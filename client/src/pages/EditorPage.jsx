@@ -19,6 +19,7 @@ export default function EditorPage() {
   const [board, setBoard] = useState(emptyBoard());
   const [boards, setBoards] = useState([]);
   const [status, setStatus] = useState('');
+  const [prepSource, setPrepSource] = useState('jeopardy-archive');
   const [prepNumCategories, setPrepNumCategories] = useState(5);
   const [prepIncludeRound2, setPrepIncludeRound2] = useState(false);
   const [prepLoading, setPrepLoading] = useState(false);
@@ -157,12 +158,20 @@ export default function EditorPage() {
 
   async function generateTaylorsPrep() {
     setPrepLoading(true);
-    setStatus('Fetching trivia from Open Trivia DB... this can take a minute (API rate limits).');
+    setStatus(
+      prepSource === 'open-trivia-db'
+        ? 'Fetching trivia from Open Trivia DB... this can take a minute (API rate limits).'
+        : 'Pulling real Jeopardy! clues... the first run downloads the clue archive, so it may take a bit longer.'
+    );
     try {
       const res = await fetch('/api/boards/generate-random', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ numCategories: prepNumCategories, includeRound2: prepIncludeRound2 }),
+        body: JSON.stringify({
+          numCategories: prepNumCategories,
+          includeRound2: prepIncludeRound2,
+          source: prepSource,
+        }),
       });
       const data = await res.json();
       if (data.board) {
@@ -209,10 +218,18 @@ export default function EditorPage() {
           Taylor's Prep
         </div>
         <div className="subtitle" style={{ marginBottom: '0.75rem' }}>
-          Auto-generate a board from random trivia categories (Open Trivia DB). Loads into the editor below for review before
-          saving.
+          {prepSource === 'open-trivia-db'
+            ? 'Auto-generate a board from random Open Trivia DB categories, converted to Jeopardy-style clue/answer-as-a-question form where possible. Loads into the editor below for review before saving.'
+            : 'Auto-generate a board from real, previously-aired Jeopardy! categories — already in proper clue/answer-as-a-question form. Loads into the editor below for review before saving.'}
         </div>
         <div className="row" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <label>
+            Source
+            <select value={prepSource} onChange={(e) => setPrepSource(e.target.value)} style={{ marginLeft: '0.5rem' }}>
+              <option value="jeopardy-archive">Real Jeopardy Archive</option>
+              <option value="open-trivia-db">Open Trivia DB</option>
+            </select>
+          </label>
           <label>
             Categories
             <input

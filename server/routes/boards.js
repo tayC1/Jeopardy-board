@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { listBoards, getBoard, saveBoard, deleteBoard } from '../boardStore.js';
 import { csvToBoard } from '../csvImport.js';
-import { generateRandomBoard } from '../triviaApi.js';
+import { generateRandomBoard as generateFromArchive } from '../jeopardyDataset.js';
+import { generateRandomBoard as generateFromOtdb } from '../triviaApi.js';
 
 const router = Router();
 
@@ -61,8 +62,9 @@ router.post('/import-csv', async (req, res) => {
 
 router.post('/generate-random', async (req, res) => {
   try {
-    const { numCategories, includeRound2 } = req.body || {};
-    const board = await generateRandomBoard({
+    const { numCategories, includeRound2, source } = req.body || {};
+    const generate = source === 'open-trivia-db' ? generateFromOtdb : generateFromArchive;
+    const board = await generate({
       numCategories,
       includeRound2: !!includeRound2,
     });
