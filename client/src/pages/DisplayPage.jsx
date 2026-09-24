@@ -4,15 +4,19 @@ import { socket, emitAsync } from '../lib/socket.js';
 import Board from '../components/Board.jsx';
 import Scoreboard from '../components/Scoreboard.jsx';
 import PlayQrCode from '../components/PlayQrCode.jsx';
+import { useGameSounds, primeAudio } from '../lib/sounds.js';
 
 export default function DisplayPage() {
   const { code } = useParams();
   const [state, setState] = useState(null);
   const [error, setError] = useState('');
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   useEffect(() => {
     document.title = 'Display';
   }, []);
+
+  useGameSounds(state);
 
   useEffect(() => {
     function onState(s) {
@@ -48,6 +52,18 @@ export default function DisplayPage() {
           <div className="title">Room {state.code}</div>
           <p className="subtitle">Waiting for the host to start the game...</p>
           <PlayQrCode code={state.code} />
+          {!soundEnabled && (
+            <button
+              className="secondary"
+              style={{ marginTop: '1rem' }}
+              onClick={() => {
+                primeAudio();
+                setSoundEnabled(true);
+              }}
+            >
+              🔊 Enable Sound
+            </button>
+          )}
         </div>
       )}
 
