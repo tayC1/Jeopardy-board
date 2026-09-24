@@ -176,7 +176,7 @@ export async function generateRandomBoard({ numCategories = 5, includeRound2 = f
     const picked = [];
     for (const group of shuffle(index[round] || [])) {
       if (picked.length >= n) break;
-      if (group.clueCount < 3 || usedNames.has(group.category)) continue;
+      if (group.clueCount < 5 || usedNames.has(group.category)) continue;
       usedNames.add(group.category);
       picked.push(group);
     }
