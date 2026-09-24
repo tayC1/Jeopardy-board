@@ -20,7 +20,7 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'jeopardy_clues.tsv');
 const DATA_URL = 'https://raw.githubusercontent.com/jwolle1/jeopardy_clue_dataset/main/combined_season1-42.tsv';
 
-let cachedIndex = null;
+let indexPromise = null;
 
 async function ensureDatasetFile() {
   try {
@@ -37,8 +37,7 @@ async function ensureDatasetFile() {
   await fs.rename(tmpFile, DATA_FILE);
 }
 
-async function loadIndex() {
-  if (cachedIndex) return cachedIndex;
+async function buildIndex() {
   await ensureDatasetFile();
   const raw = await fs.readFile(DATA_FILE, 'utf-8');
   const lines = raw.split('\n');
@@ -73,8 +72,29 @@ async function loadIndex() {
   for (const group of groups.values()) {
     if (byRound[group.round]) byRound[group.round].push(group);
   }
-  cachedIndex = byRound;
-  return cachedIndex;
+  return byRound;
+}
+
+// Memoizes the in-flight promise (not just the resolved value) so a startup
+// preload and a request that lands mid-download share one download+parse
+// instead of racing to fetch the ~80MB dataset twice.
+function loadIndex() {
+  if (!indexPromise) {
+    indexPromise = buildIndex().catch((err) => {
+      indexPromise = null; // allow retry on the next call after a failure
+      throw err;
+    });
+  }
+  return indexPromise;
+}
+
+// Kicks off the dataset download/parse immediately at server boot instead of
+// waiting for the first "Taylor's Prep" request. On hosts like Render, that
+// first request would otherwise pay for an ~80MB download + parse inline
+// (the disk is empty on every fresh deploy/restart), which risks the
+// platform's request timeout and returns a truncated response.
+export function preloadJeopardyDataset() {
+  return loadIndex();
 }
 
 function shuffle(arr) {
