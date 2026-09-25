@@ -128,6 +128,62 @@ a {
   justify-content: center;
 }
 
+.score-adjuster {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.score-adjuster-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.score-adjuster-name {
+  flex: 1;
+}
+
+.score-adjuster-score {
+  color: var(--jep-gold);
+  font-weight: 700;
+  min-width: 4rem;
+  text-align: right;
+}
+
+.score-adjuster-row input[type='number'] {
+  width: 4.5rem;
+}
+
+.not-today-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--jep-white);
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  z-index: 9999;
+  cursor: pointer;
+}
+
+.not-today-text {
+  font-size: clamp(3rem, 10vw, 6rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.not-today-hint {
+  font-size: 1.1rem;
+  color: #666;
+}
+
 .error-banner {
   background: var(--jep-red);
   color: white;
@@ -557,6 +613,21 @@ a {
 .display-page .final-reveal-card p {
   font-size: 1.6rem;
   margin: 0.4rem 0;
+}
+
+.display-page .final-reveal-fullscreen {
+  max-width: min(90vw, 1400px);
+  padding: 4rem;
+  text-align: center;
+}
+
+.display-page .final-reveal-fullscreen h3 {
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  margin: 0 0 1.5rem;
+}
+
+.display-page .final-reveal-fullscreen p {
+  font-size: clamp(1.8rem, 3.5vw, 3rem);
 }
 
 .display-page .error-banner {

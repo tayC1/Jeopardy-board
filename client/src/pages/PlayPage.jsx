@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { socket, emitAsync } from '../lib/socket.js';
+import { startClockSync, estimatedServerTime } from '../lib/clockSync.js';
 import Board from '../components/Board.jsx';
 import Scoreboard from '../components/Scoreboard.jsx';
+import NotTodayOverlay from '../components/NotTodayOverlay.jsx';
+import { isNotToday } from '../lib/notToday.js';
 
 export default function PlayPage() {
   const { code } = useParams();
@@ -17,10 +20,14 @@ export default function PlayPage() {
   const [wagerSubmitted, setWagerSubmitted] = useState(false);
   const [answerInput, setAnswerInput] = useState('');
   const [answerSubmitted, setAnswerSubmitted] = useState(false);
+  const [notToday, setNotToday] = useState(false);
+  const [justBuzzed, setJustBuzzed] = useState(false);
 
   useEffect(() => {
     document.title = 'Player';
   }, []);
+
+  useEffect(() => startClockSync(), []);
 
   useEffect(() => {
     function onState(s) {
@@ -48,6 +55,10 @@ export default function PlayPage() {
     e?.preventDefault();
     const roomCode = codeInput.trim().toUpperCase();
     if (!roomCode || !nameInput.trim()) return;
+    if (isNotToday(nameInput)) {
+      setNotToday(true);
+      return;
+    }
     const storageKey = `jeopardy_playerId_${roomCode}`;
     const existingId = localStorage.getItem(storageKey);
     try {
@@ -86,8 +97,40 @@ export default function PlayPage() {
     if (joined && code) localStorage.setItem(`jeopardy_name_${code}`, nameInput.trim());
   }, [joined, code, nameInput]);
 
+  // Socket.IO auto-reconnects after a dropped connection (common on phones —
+  // screen lock, backgrounded tab, a wifi blip), but the new connection has
+  // no playerId attached to it until we re-announce ourselves. Without this,
+  // the player stays shown as disconnected and their buzz-ins silently no-op.
+  useEffect(() => {
+    function rejoin() {
+      const roomCode = code || codeInput.trim().toUpperCase();
+      if (!roomCode) return;
+      const storageKey = `jeopardy_playerId_${roomCode}`;
+      const storedId = playerId || localStorage.getItem(storageKey);
+      const storedName = nameInput.trim() || localStorage.getItem(`jeopardy_name_${roomCode}`);
+      if (!storedId || !storedName) return;
+      emitAsync('player:join', { code: roomCode, name: storedName, playerId: storedId })
+        .then((res) => {
+          localStorage.setItem(storageKey, res.playerId);
+          setPlayerId(res.playerId);
+          setJoined(true);
+        })
+        .catch(() => {});
+    }
+    socket.on('connect', rejoin);
+    return () => socket.off('connect', rejoin);
+  }, [code, codeInput, playerId, nameInput]);
+
   function act(event, payload) {
     emitAsync(event, payload).catch((err) => setError(err.message));
+  }
+
+  useEffect(() => {
+    setJustBuzzed(false);
+  }, [state?.buzz?.openedAt]);
+
+  if (notToday) {
+    return <NotTodayOverlay onDismiss={() => setNotToday(false)} />;
   }
 
   if (!joined) {
@@ -132,7 +175,7 @@ export default function PlayPage() {
   }
 
   const isLockedOut = state.buzz?.lockedOutIds?.includes(playerId);
-  const canBuzz = state.phase === 'clue' && state.buzz.open && !state.buzz.lockedPlayerId && !isLockedOut;
+  const canBuzz = state.phase === 'clue' && state.buzz.open && !state.buzz.lockedPlayerId && !isLockedOut && !justBuzzed;
   const me = state.players.find((p) => p.id === playerId);
 
   return (
@@ -150,6 +193,7 @@ export default function PlayPage() {
             board={state.board}
             boardRevealed={state.boardRevealed}
             valuesRevealed={state.valuesRevealed}
+            animateValues={state.round === 1}
           />
           <p className="subtitle" style={{ textAlign: 'center' }}>
             Watch the display — the host is picking the next clue.
@@ -168,8 +212,23 @@ export default function PlayPage() {
           {state.phase === 'dd_clue' ? (
             <p className="subtitle">Daily Double in progress...</p>
           ) : (
-            <button className="buzzer-button" disabled={!canBuzz} onClick={() => act('player:buzz')}>
-              {isLockedOut ? 'Locked Out' : state.buzz.lockedPlayerId ? 'Locked' : state.buzz.open ? 'BUZZ' : 'Wait...'}
+            <button
+              className="buzzer-button"
+              disabled={!canBuzz}
+              onClick={() => {
+                setJustBuzzed(true);
+                act('player:buzz', { clientTime: estimatedServerTime() });
+              }}
+            >
+              {isLockedOut
+                ? 'Locked Out'
+                : state.buzz.lockedPlayerId
+                  ? 'Locked'
+                  : justBuzzed
+                    ? 'Buzzed!'
+                    : state.buzz.open
+                      ? 'BUZZ'
+                      : 'Wait...'}
             </button>
           )}
         </div>
@@ -189,7 +248,7 @@ export default function PlayPage() {
                 min="0"
                 max={Math.max(me?.score || 0, 0)}
                 value={wagerInput}
-                onChange={(e) => setWagerInput(e.target.value)}
+                onChange={(e) => setWagerInput(Math.max(0, Number(e.target.value) || 0))}
                 style={{ width: '100%', marginTop: '0.4rem', marginBottom: '0.75rem' }}
               />
               <button
@@ -223,6 +282,10 @@ export default function PlayPage() {
               <button
                 style={{ width: '100%' }}
                 onClick={() => {
+                  if (isNotToday(answerInput)) {
+                    setNotToday(true);
+                    return;
+                  }
                   act('player:submitFinalAnswer', { answer: answerInput });
                   setAnswerSubmitted(true);
                 }}

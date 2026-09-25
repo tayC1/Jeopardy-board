@@ -237,7 +237,7 @@ export default function EditorPage() {
               min="2"
               max="10"
               value={prepNumCategories}
-              onChange={(e) => setPrepNumCategories(Number(e.target.value))}
+              onChange={(e) => setPrepNumCategories(Math.max(0, Number(e.target.value) || 0))}
               style={{ width: '70px', marginLeft: '0.5rem' }}
             />
           </label>
@@ -336,9 +336,10 @@ function CategoryGrid({ categories, onAddCategory, onRemoveCategory, onRenameCat
                 <div className="row" style={{ justifyContent: 'space-between' }}>
                   <input
                     type="number"
+                    min="0"
                     style={{ width: '90px' }}
                     value={clue.value}
-                    onChange={(e) => onUpdateClue(catIdx, clueIdx, 'value', Number(e.target.value))}
+                    onChange={(e) => onUpdateClue(catIdx, clueIdx, 'value', Math.max(0, Number(e.target.value) || 0))}
                   />
                   <label style={{ fontSize: '0.8rem' }}>
                     <input

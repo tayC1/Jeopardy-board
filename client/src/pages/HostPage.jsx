@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { socket, emitAsync } from '../lib/socket.js';
 import Board from '../components/Board.jsx';
 import Scoreboard from '../components/Scoreboard.jsx';
+import ScoreAdjuster from '../components/ScoreAdjuster.jsx';
 
 function CountdownTimer({ startedAt, durationSec, label }) {
   const [now, setNow] = useState(() => Date.now());
@@ -53,13 +54,19 @@ export default function HostPage() {
     socket.on('state:host', onState);
     socket.on('action:error', onError);
 
-    if (code) {
-      emitAsync('host:rejoinRoom', { code }).catch((err) => setError(err.message));
+    // Re-announce on every (re)connect, not just on mount — Socket.IO
+    // auto-reconnects after a dropped connection, and the new connection
+    // needs to be re-attached to this room or the host stops receiving
+    // state updates entirely.
+    function rejoin() {
+      if (code) emitAsync('host:rejoinRoom', { code }).catch((err) => setError(err.message));
     }
+    socket.on('connect', rejoin);
 
     return () => {
       socket.off('state:host', onState);
       socket.off('action:error', onError);
+      socket.off('connect', rejoin);
     };
   }, [code]);
 
@@ -148,6 +155,11 @@ export default function HostPage() {
 
       <Scoreboard players={state.players} buzz={state.buzz} />
 
+      <ScoreAdjuster
+        players={state.players}
+        onAdjust={(playerId, delta) => act('host:adjustScore', { playerId, delta })}
+      />
+
       {state.phase === 'lobby' && (
         <div className="page center-page phase-fade-in">
           <p>Waiting for players to join...</p>
@@ -165,6 +177,7 @@ export default function HostPage() {
             board={state.board}
             boardRevealed={state.boardRevealed}
             valuesRevealed={state.valuesRevealed}
+            animateValues={state.round === 1}
             onSelectClue={(catIndex, clueIndex) => act('host:selectClue', { catIndex, clueIndex })}
           />
           <div className="host-controls">
@@ -228,7 +241,7 @@ export default function HostPage() {
               type="number"
               min="0"
               value={ddWager}
-              onChange={(e) => setDdWager(e.target.value)}
+              onChange={(e) => setDdWager(Math.max(0, Number(e.target.value) || 0))}
               style={{ width: '100%', marginTop: '0.4rem' }}
             />
             <button

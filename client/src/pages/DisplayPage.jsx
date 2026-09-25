@@ -22,9 +22,19 @@ export default function DisplayPage() {
     function onState(s) {
       setState(s);
     }
+    function rejoin() {
+      emitAsync('display:joinRoom', { code }).catch((err) => setError(err.message));
+    }
     socket.on('state:public', onState);
-    emitAsync('display:joinRoom', { code }).catch((err) => setError(err.message));
-    return () => socket.off('state:public', onState);
+    // Re-announce on every (re)connect, not just on mount — Socket.IO
+    // auto-reconnects after a dropped connection, and the new connection
+    // needs to be re-attached to this room or the display stops updating.
+    socket.on('connect', rejoin);
+    rejoin();
+    return () => {
+      socket.off('state:public', onState);
+      socket.off('connect', rejoin);
+    };
   }, [code]);
 
   if (error) {
@@ -75,6 +85,7 @@ export default function DisplayPage() {
             board={state.board}
             boardRevealed={state.boardRevealed}
             valuesRevealed={state.valuesRevealed}
+            animateValues={state.round === 1}
           />
         </div>
       )}
@@ -118,27 +129,38 @@ export default function DisplayPage() {
         </div>
       )}
 
-      {(state.phase === 'final_wager' || state.phase === 'final_clue' || state.phase === 'final_reveal') && (
+      {(state.phase === 'final_wager' || state.phase === 'final_clue') && (
         <div className="page center-page phase-fade-in">
           <div className="title">Final Jeopardy</div>
           <p className="subtitle">{state.final?.category}</p>
           {state.final?.clue && <div className="clue-text">{state.final.clue}</div>}
           {state.phase === 'final_wager' && <p className="subtitle">Players are wagering...</p>}
           {state.phase === 'final_clue' && <p className="subtitle">Players are answering...</p>}
-          {state.phase === 'final_reveal' &&
-            state.final.reveals.map((r) => (
-              <div
-                key={r.playerId}
-                className={`final-reveal-card${r.correct === true ? ' correct' : r.correct === false ? ' incorrect' : ''}`}
-              >
-                <h3>{r.name}</h3>
-                <p>Wager: ${r.wager}</p>
-                <p>Answer: {r.answer}</p>
-                <p>{r.correct === true ? '✅ Correct' : r.correct === false ? '❌ Incorrect' : ''}</p>
-              </div>
-            ))}
         </div>
       )}
+
+      {state.phase === 'final_reveal' && (() => {
+        const current = state.final.reveals[state.final.reveals.length - 1];
+        return (
+          <div key={current?.playerId || 'waiting'} className="page center-page phase-fade-in">
+            {current ? (
+              <div
+                className={`final-reveal-card final-reveal-fullscreen${current.correct === true ? ' correct' : current.correct === false ? ' incorrect' : ''}`}
+              >
+                <h3>{current.name}</h3>
+                <p>Wager: ${current.wager}</p>
+                <p>Answer: {current.answer}</p>
+                <p>{current.correct === true ? '✅ Correct' : '❌ Incorrect'}</p>
+              </div>
+            ) : (
+              <>
+                <div className="title">Final Jeopardy</div>
+                <p className="subtitle">{state.final?.category}</p>
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {state.phase === 'game_over' && (
         <div className="page center-page phase-fade-in">

@@ -1,7 +1,14 @@
 import { nanoid } from 'nanoid';
 
+// Players buzz in over networks with wildly different latency (wifi vs.
+// cellular, home vs. venue), so we don't lock in whoever's packet happens to
+// arrive at the server first. Clients timestamp their buzz against a
+// clock-synced estimate of server time; we clamp that estimate to a sane
+// window so a player can't fake an earlier press by lying about their clock.
+const MAX_LATENCY_COMPENSATION_MS = 1500;
+
 function emptyBuzz() {
-  return { open: false, lockedPlayerId: null, lockedOutIds: [], openedAt: null, lockedAt: null };
+  return { open: false, lockedPlayerId: null, lockedOutIds: [], openedAt: null, lockedAt: null, pending: [] };
 }
 
 function buildRoundBoard(rawBoard, round) {
@@ -34,6 +41,7 @@ export class Room {
     this.valuesRevealed = false;
     this.categoryIntroStep = null; // alternates logo(even)/category(odd): 0=logo, 1=cat0, 2=logo, 3=cat1, ...
     this.buzzTimeoutHandle = null;
+    this.buzzCollectHandle = null;
     this.lastCorrectPlayerId = null;
   }
 
@@ -74,6 +82,15 @@ export class Room {
     if (player) player.connected = false;
   }
 
+  adjustScore(playerId, delta) {
+    const player = this.players.get(playerId);
+    if (!player) return { ok: false, error: 'Unknown player' };
+    const amount = Number(delta);
+    if (!Number.isFinite(amount)) return { ok: false, error: 'Invalid amount' };
+    player.score += amount;
+    return { ok: true };
+  }
+
   allCluesAnswered() {
     return this.board.categories.every((cat) => cat.clues.every((c) => c.answered));
   }
@@ -109,6 +126,8 @@ export class Room {
   _clearBuzzTimer() {
     clearTimeout(this.buzzTimeoutHandle);
     this.buzzTimeoutHandle = null;
+    clearTimeout(this.buzzCollectHandle);
+    this.buzzCollectHandle = null;
   }
 
   selectClue(catIndex, clueIndex) {
@@ -148,17 +167,43 @@ export class Room {
     this.buzz.lockedPlayerId = null;
     this.buzz.openedAt = Date.now();
     this.buzz.lockedAt = null;
+    this.buzz.pending = [];
     return { ok: true };
   }
 
-  buzz_(playerId) {
+  // Records a buzz attempt instead of locking immediately. The first attempt
+  // for a clue starts a short collection window (see BUZZ_COLLECT_WINDOW_MS
+  // in socketHandlers.js); resolveBuzz() picks the winner once it closes.
+  buzz_(playerId, clientEstServerTime) {
     if (this.phase !== 'clue' || !this.buzz.open) return { ok: false, error: 'Buzzer is not open' };
     if (this.buzz.lockedOutIds.includes(playerId)) return { ok: false, error: 'You are locked out for this clue' };
     if (this.buzz.lockedPlayerId) return { ok: false, error: 'Someone already buzzed in' };
-    this._clearBuzzTimer();
-    this.buzz.lockedPlayerId = playerId;
+    if (this.buzz.pending.some((p) => p.playerId === playerId)) return { ok: false, error: 'Already buzzed' };
+
+    const receivedAt = Date.now();
+    const lowerBound = Math.max(this.buzz.openedAt ?? receivedAt, receivedAt - MAX_LATENCY_COMPENSATION_MS);
+    const rawEstimate = Number.isFinite(clientEstServerTime) ? clientEstServerTime : receivedAt;
+    const estimate = Math.min(receivedAt, Math.max(lowerBound, rawEstimate));
+
+    const startCollectWindow = this.buzz.pending.length === 0;
+    this.buzz.pending.push({ playerId, estimate });
+    if (startCollectWindow) {
+      // A buzz is in flight, so cancel the "no one answered" auto-skip timer.
+      clearTimeout(this.buzzTimeoutHandle);
+      this.buzzTimeoutHandle = null;
+    }
+    return { ok: true, startCollectWindow };
+  }
+
+  // Called once the collection window closes; picks whoever's estimated
+  // press time was earliest among everyone who buzzed during the window.
+  resolveBuzz() {
+    if (!this.buzz.open || this.buzz.pending.length === 0) return { ok: false, error: 'Nothing to resolve' };
+    const winner = this.buzz.pending.reduce((a, b) => (b.estimate < a.estimate ? b : a));
+    this.buzz.lockedPlayerId = winner.playerId;
     this.buzz.open = false;
     this.buzz.lockedAt = Date.now();
+    this.buzz.pending = [];
     return { ok: true };
   }
 

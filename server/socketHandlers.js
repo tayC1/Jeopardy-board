@@ -2,6 +2,10 @@ import { createRoom, getRoom } from './rooms.js';
 import { getBoard } from './boardStore.js';
 
 const BUZZ_AUTO_SKIP_MS = 20000;
+// How long we wait after the first buzz-in before locking in a winner, so
+// buzzes from higher-latency players have a chance to arrive and be compared
+// on estimated press time rather than raw arrival order.
+const BUZZ_COLLECT_WINDOW_MS = 200;
 
 function broadcast(io, room) {
   if (room.hostSocketId) {
@@ -19,6 +23,10 @@ export function registerSocketHandlers(io) {
     socket.data.role = null;
     socket.data.roomCode = null;
     socket.data.playerId = null;
+
+    // Lets clients estimate their clock offset from the server so buzz-in
+    // timestamps can be compared fairly regardless of each player's latency.
+    socket.on('clock:sync', (_payload, cb) => cb?.(Date.now()));
 
     socket.on('host:createRoom', async ({ boardId }, cb) => {
       try {
@@ -75,9 +83,15 @@ export function registerSocketHandlers(io) {
       broadcast(io, room);
     });
 
+    socket.on('host:adjustScore', ({ playerId, delta }, cb) =>
+      withRoom(socket, cb, (room) => room.adjustScore(playerId, delta))
+    );
+
     socket.on('host:addTestPlayer', (_payload, cb) => withRoom(socket, cb, (room) => room.addTestPlayer()));
     socket.on('host:removeTestPlayer', (_payload, cb) => withRoom(socket, cb, (room) => room.removeTestPlayer()));
-    socket.on('host:testPlayerBuzz', (_payload, cb) => withRoom(socket, cb, (room) => room.testPlayerBuzz()));
+    socket.on('host:testPlayerBuzz', (_payload, cb) =>
+      withRoom(socket, cb, (room) => startBuzzCollectWindow(room, room.testPlayerBuzz()))
+    );
 
     socket.on('host:startBoardRound', (_payload, cb) => withRoom(socket, cb, (room) => room.startBoardRound()));
     socket.on('host:revealValues', (_payload, cb) => withRoom(socket, cb, (room) => room.revealValues()));
@@ -120,8 +134,19 @@ export function registerSocketHandlers(io) {
       withRoom(socket, cb, (room) => room.judgeFinal(correct))
     );
 
-    socket.on('player:buzz', (_payload, cb) =>
-      withRoom(socket, cb, (room) => room.buzz_(socket.data.playerId))
+    function startBuzzCollectWindow(room, result) {
+      if (result.ok && result.startCollectWindow) {
+        room.buzzCollectHandle = setTimeout(() => {
+          room.buzzCollectHandle = null;
+          const resolved = room.resolveBuzz();
+          if (resolved.ok) broadcast(io, room);
+        }, BUZZ_COLLECT_WINDOW_MS);
+      }
+      return result;
+    }
+
+    socket.on('player:buzz', ({ clientTime } = {}, cb) =>
+      withRoom(socket, cb, (room) => startBuzzCollectWindow(room, room.buzz_(socket.data.playerId, clientTime)))
     );
     socket.on('player:submitFinalWager', ({ wager }, cb) =>
       withRoom(socket, cb, (room) => room.submitFinalWager(socket.data.playerId, wager))

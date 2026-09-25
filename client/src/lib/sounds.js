@@ -8,13 +8,32 @@ const SOUND_FILES = {
   finalJeopardyThink: '/sounds/final-jeopardy-think.mp3',
 };
 
+// Fallback durations (ms) used until each file's real metadata loads, so
+// anything timed against a sound (e.g. the board value-fill animation) can
+// sync up on the very first play. Keep in sync with the files in public/sounds.
+const FALLBACK_DURATIONS_MS = {
+  boardFill: 3800,
+};
+
+const soundDurationsMs = { ...FALLBACK_DURATIONS_MS };
 const audioCache = {};
 
 function getAudio(key) {
   if (!audioCache[key]) {
-    audioCache[key] = new Audio(SOUND_FILES[key]);
+    const audio = new Audio(SOUND_FILES[key]);
+    audio.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(audio.duration)) soundDurationsMs[key] = audio.duration * 1000;
+    });
+    audioCache[key] = audio;
   }
   return audioCache[key];
+}
+
+// Duration of a sound in ms, for animations that need to time themselves to
+// finish alongside it. Triggers preloading as a side effect.
+export function getSoundDurationMs(key) {
+  getAudio(key);
+  return soundDurationsMs[key] ?? 0;
 }
 
 function play(key, { loop = false } = {}) {
@@ -52,11 +71,11 @@ export function useGameSounds(state) {
     if (!state) return;
     const p = prev.current;
 
-    if (state.phase === 'board' && !state.valuesRevealed && (p.phase !== 'board' || p.round !== state.round)) {
+    if (state.phase === 'board' && state.round === 1 && !state.valuesRevealed && p.phase !== 'board') {
       play('thisIsJeopardy');
     }
 
-    if (state.valuesRevealed && !p.valuesRevealed) {
+    if (state.round === 1 && state.valuesRevealed && !p.valuesRevealed) {
       play('boardFill');
     }
 

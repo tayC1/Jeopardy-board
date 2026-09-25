@@ -20,6 +20,17 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'jeopardy_clues.tsv');
 const DATA_URL = 'https://raw.githubusercontent.com/jwolle1/jeopardy_clue_dataset/main/combined_season1-42.tsv';
 
+// The dataset spans decades of aired games, and the show's dollar values
+// changed over the years (e.g. old episodes use 100-500, modern ones use
+// 200-1000). Since a generated board mixes categories from many different
+// episodes, using each clue's original historical value would produce a
+// board where categories disagree on what each row is worth. Instead, every
+// category is renumbered to the same canonical scale by clue rank, so the
+// board always reads like one consistent game regardless of which eras its
+// categories came from.
+const ROUND1_VALUES = [200, 400, 600, 800, 1000];
+const ROUND2_VALUES = [400, 800, 1200, 1600, 2000];
+
 let indexPromise = null;
 let colMap = null;
 
@@ -155,11 +166,12 @@ async function readGroupClues(group) {
     });
 }
 
-async function toCategory(group) {
+async function toCategory(group, canonicalValues) {
   const clues = await readGroupClues(group);
+  const ranked = clues.sort((a, b) => a.value - b.value).slice(0, 5);
   return {
-    name: group.category,
-    clues: clues.sort((a, b) => a.value - b.value).slice(0, 5),
+    name: sanitizeText(group.category),
+    clues: ranked.map((clue, i) => ({ ...clue, value: canonicalValues[i] })),
   };
 }
 
@@ -194,8 +206,8 @@ export async function generateRandomBoard({ numCategories = 5, includeRound2 = f
   const dateLabel = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
   const [categories, round2Categories, finalClues] = await Promise.all([
-    Promise.all(round1Groups.map(toCategory)),
-    Promise.all(round2Groups.map(toCategory)),
+    Promise.all(round1Groups.map((g) => toCategory(g, ROUND1_VALUES))),
+    Promise.all(round2Groups.map((g) => toCategory(g, ROUND2_VALUES))),
     finalGroup ? readGroupClues(finalGroup) : null,
   ]);
 
@@ -204,7 +216,7 @@ export async function generateRandomBoard({ numCategories = 5, includeRound2 = f
     categories,
     round2: round2Categories.length ? { categories: round2Categories } : null,
     finalJeopardy: finalGroup
-      ? { category: finalGroup.category, clue: finalClues[0].clue, answer: finalClues[0].answer }
+      ? { category: sanitizeText(finalGroup.category), clue: finalClues[0].clue, answer: finalClues[0].answer }
       : { category: '', clue: '', answer: '' },
   };
 }
